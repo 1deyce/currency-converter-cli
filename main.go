@@ -1,21 +1,22 @@
-/*todo: Convert between a number of base currencies. Recommended to start with USD,GBP,EUR & JPY.
-Use the huh package in order to create the terminal form
-You'll need to make use of a third party API in order to obtain currency conversion data.*/
-
 package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strconv"
+
+	"github.com/1deyce/currency-converter/converter"
 	"github.com/1deyce/currency-converter/rates"
-	// "github.com/1deyce/currency-converter/converter"
+	"github.com/charmbracelet/huh"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// TODO: get 3 inputs from user [amount, from, to]
-	// use options select for from & to string values using form
-	/* var from, to string
-    var amount float64*/
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	appID := os.Getenv("OPENEXCHANGE_APP_ID")
 	if appID == "" {
@@ -31,9 +32,57 @@ func main() {
         return
     }
 
-	fmt.Printf("Fetched rates: %+v\n", rates)
+	var from, to, amountStr string
 
-	// converted := converter.Convert(from, to, amount, rates)
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Please select the currency you wish to convert FROM").
+				Options(
+					huh.NewOption("United States Dollar", "USD"),
+					huh.NewOption("Great Britain Pound", "GBP"),
+					huh.NewOption("Euro", "EUR"),
+					huh.NewOption("Japanese Yen", "JPY"),
+					huh.NewOption("South African Rand", "ZAR"),
+				).
+				Value(&from),
+		
+			huh.NewInput().
+				Title("Please enter the amount you wish to convert").
+				Prompt("? ").
+				Value(&amountStr),
+		
+			huh.NewSelect[string]().
+				Title("Please select the currency you wish to convert TO").
+				Options(
+					huh.NewOption("United States Dollar", "USD"),
+					huh.NewOption("Great Britain Pound", "GBP"),
+					huh.NewOption("Euro", "EUR"),
+					huh.NewOption("Japanese Yen", "JPY"),
+					huh.NewOption("South African Rand", "ZAR"),
+				).
+				Value(&to),
+		),
+	)
+
+	err = form.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	amount, err := strconv.ParseFloat(amountStr, 64)
+	if err != nil {
+        fmt.Printf("Error parsing amount: %v\n", err)
+        return
+    }
+
+	converted, err := converter.Convert(from, to, amount, rates)
+	if err != nil {
+        fmt.Printf("Error converting currency: %v\n", err)
+        return
+    }
+
+	fmt.Printf("Converted amount: %.2f %s\n", converted, to)
 }	
 
 

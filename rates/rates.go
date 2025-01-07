@@ -1,10 +1,9 @@
 package rates
 
 import (
-    "encoding/json"
-    "errors"
-    "net/http"
-	"fmt"
+	"encoding/json"
+	"errors"
+	"net/http"
 )
 
 type ExchangeRates struct {
@@ -26,7 +25,7 @@ func FetchRates(apiURL string) (ExchangeRates, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&rates); err != nil {
 		return ExchangeRates{}, err
 	}
-	fmt.Printf("Fetched exchange rates: %+v\n", rates)
+	// fmt.Printf("Fetched exchange rates: %+v\n", rates)
 
 	return rates, nil
 }
